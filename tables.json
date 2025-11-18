@@ -1,0 +1,217 @@
+{
+  "success": true,
+  "event": "SEST SENAT COP 30",
+  "count": 70,
+  "data": [
+    {
+      "table_name": "admin_permissions"
+    },
+    {
+      "table_name": "admin_permissions_role_lnk"
+    },
+    {
+      "table_name": "admin_roles"
+    },
+    {
+      "table_name": "admin_users"
+    },
+    {
+      "table_name": "admin_users_roles_lnk"
+    },
+    {
+      "table_name": "ativacoes"
+    },
+    {
+      "table_name": "ativacoes_evento_lnk"
+    },
+    {
+      "table_name": "avaliacao_de_ativacaos"
+    },
+    {
+      "table_name": "avaliacao_de_ativacaos_ativacao_lnk"
+    },
+    {
+      "table_name": "avaliacao_de_ativacaos_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "avaliacao_de_programacaos"
+    },
+    {
+      "table_name": "avaliacao_de_programacaos_programacao_lnk"
+    },
+    {
+      "table_name": "avaliacao_de_programacaos_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "brindes"
+    },
+    {
+      "table_name": "checkins"
+    },
+    {
+      "table_name": "checkins_ativacao_lnk"
+    },
+    {
+      "table_name": "checkins_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "chute_moedas"
+    },
+    {
+      "table_name": "clientes"
+    },
+    {
+      "table_name": "eventos"
+    },
+    {
+      "table_name": "eventos_cliente_lnk"
+    },
+    {
+      "table_name": "feedback_do_usuarios"
+    },
+    {
+      "table_name": "feedback_do_usuarios_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "files"
+    },
+    {
+      "table_name": "files_folder_lnk"
+    },
+    {
+      "table_name": "files_related_mph"
+    },
+    {
+      "table_name": "i18n_locale"
+    },
+    {
+      "table_name": "notificacoes"
+    },
+    {
+      "table_name": "numero_da_sortes"
+    },
+    {
+      "table_name": "numero_da_sortes_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "palestrantes"
+    },
+    {
+      "table_name": "palestrantes_evento_lnk"
+    },
+    {
+      "table_name": "pesquisa_experiencias"
+    },
+    {
+      "table_name": "pesquisa_experiencias_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "programacaos"
+    },
+    {
+      "table_name": "programacaos_palestrantes_lnk"
+    },
+    {
+      "table_name": "resgates"
+    },
+    {
+      "table_name": "resgates_brinde_lnk"
+    },
+    {
+      "table_name": "resgates_users_permissions_user_lnk"
+    },
+    {
+      "table_name": "roletas"
+    },
+    {
+      "table_name": "roletas_brinde_lnk"
+    },
+    {
+      "table_name": "strapi_api_token_permissions"
+    },
+    {
+      "table_name": "strapi_api_token_permissions_token_lnk"
+    },
+    {
+      "table_name": "strapi_api_tokens"
+    },
+    {
+      "table_name": "strapi_core_store_settings"
+    },
+    {
+      "table_name": "strapi_database_schema"
+    },
+    {
+      "table_name": "strapi_history_versions"
+    },
+    {
+      "table_name": "strapi_migrations"
+    },
+    {
+      "table_name": "strapi_migrations_internal"
+    },
+    {
+      "table_name": "strapi_release_actions"
+    },
+    {
+      "table_name": "strapi_release_actions_release_lnk"
+    },
+    {
+      "table_name": "strapi_releases"
+    },
+    {
+      "table_name": "strapi_sessions"
+    },
+    {
+      "table_name": "strapi_transfer_token_permissions"
+    },
+    {
+      "table_name": "strapi_transfer_token_permissions_token_lnk"
+    },
+    {
+      "table_name": "strapi_transfer_tokens"
+    },
+    {
+      "table_name": "strapi_webhooks"
+    },
+    {
+      "table_name": "strapi_workflows"
+    },
+    {
+      "table_name": "strapi_workflows_stage_required_to_publish_lnk"
+    },
+    {
+      "table_name": "strapi_workflows_stages"
+    },
+    {
+      "table_name": "strapi_workflows_stages_permissions_lnk"
+    },
+    {
+      "table_name": "strapi_workflows_stages_workflow_lnk"
+    },
+    {
+      "table_name": "up_permissions"
+    },
+    {
+      "table_name": "up_permissions_role_lnk"
+    },
+    {
+      "table_name": "up_roles"
+    },
+    {
+      "table_name": "up_users"
+    },
+    {
+      "table_name": "up_users_chute_moeda_lnk"
+    },
+    {
+      "table_name": "up_users_role_lnk"
+    },
+    {
+      "table_name": "upload_folders"
+    },
+    {
+      "table_name": "upload_folders_parent_lnk"
+    }
+  ]
+}

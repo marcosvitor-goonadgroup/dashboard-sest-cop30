@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { BarChart, Bar, Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, Area, AreaChart, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useData } from '../context/DataContext';
 import Filtros from '../components/Filtros';
 
 const Dashboard = () => {
-  const { loading, error, getMetrics, getCheckInsPorAtivacao, getCheckInsPorDia, getPicosPorHorario, getFunnelData, filters, updateFilters } = useData();
+  const { loading, error, getMetrics, getCheckInsPorAtivacao, getCheckInsPorDia, getPicosPorHorario, getFunnelData, getRoletasResgatesPorDia, filters, updateFilters } = useData();
   const [ativacaoSelecionada, setAtivacaoSelecionada] = useState(null);
   const [dataSelecionadaPicos, setDataSelecionadaPicos] = useState(null);
 
@@ -23,6 +23,9 @@ const Dashboard = () => {
 
   // Obter dados do funil de conversão
   const funnelData = getFunnelData();
+
+  // Obter dados de roletas e resgates por dia
+  const chartDataRoletasResgates = getRoletasResgatesPorDia();
 
   // Handler para clicar na barra
   const handleBarClick = (data) => {
@@ -73,6 +76,25 @@ const Dashboard = () => {
           </p>
           <p className="mb-0" style={{ color: '#ffc107' }}>
             Média Avaliação: <strong>{data.mediaAvaliacao > 0 ? data.mediaAvaliacao.toFixed(2) : 'Sem avaliações'}</strong> {data.mediaAvaliacao > 0 && '⭐'}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Tooltip customizado para gráfico de roletas e resgates
+  const CustomTooltipRoletasResgates = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="card shadow-sm" style={{ padding: '10px', border: '1px solid #ccc' }}>
+          <p className="mb-1" style={{ fontWeight: 'bold' }}>{data.dataFormatada}</p>
+          <p className="mb-1" style={{ color: '#fd7e14' }}>
+            Rodadas na Roleta: <strong>{data.rodadas}</strong>
+          </p>
+          <p className="mb-0" style={{ color: '#6f42c1' }}>
+            Resgate de Brindes: <strong>{data.resgates}</strong>
           </p>
         </div>
       );
@@ -147,7 +169,7 @@ const Dashboard = () => {
 
       {/* Cards de Métricas */}
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start">
@@ -167,7 +189,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start">
@@ -187,14 +209,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start">
                 <div style={{ flex: 1 }}>
                   <h6 className="card-subtitle mb-2 text-muted" style={{ minHeight: '40px' }}>Número de Ativações</h6>
                   <h2 className="card-title mb-0" style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#dc3545' }}>
-                    {metrics.totalAtivacoes}
+                    {metrics.totalAtivacoesComCheckins}
                   </h2>
                 </div>
                 <div className="bg-danger bg-opacity-10 rounded p-2">
@@ -207,7 +229,27 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-start">
+                <div style={{ flex: 1 }}>
+                  <h6 className="card-subtitle mb-2 text-muted" style={{ minHeight: '40px' }}>Resgate de Brindes</h6>
+                  <h2 className="card-title mb-0" style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#6f42c1' }}>
+                    {metrics.totalResgatesBrindes}
+                  </h2>
+                </div>
+                <div className="bg-purple bg-opacity-10 rounded p-2" style={{ backgroundColor: 'rgba(111, 66, 193, 0.1)' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#6f42c1" className="bi bi-gift-fill" viewBox="0 0 16 16">
+                    <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zm6 4v7.5a1.5 1.5 0 0 1-1.5 1.5H9V7h6zM2.5 16A1.5 1.5 0 0 1 1 14.5V7h6v9H2.5z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start">
@@ -471,6 +513,62 @@ const Dashboard = () => {
                       ))}
                     </Bar>
                   </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-5">
+                  <p className="text-muted">Nenhum dado disponível para exibir</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Linha com gráfico de Roletas e Resgates */}
+      <div className="row mb-4">
+        <div className="col-md-12">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <h5 className="card-title mb-2">Rodadas na Roleta e Resgate de Brindes por Dia</h5>
+              <p className="text-muted small mb-4">
+                Acompanhe a evolução diária das rodadas e resgates
+              </p>
+              {chartDataRoletasResgates.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart
+                    data={chartDataRoletasResgates}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="dataFormatada"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      style={{ fontSize: '12px' }}
+                    />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltipRoletasResgates />} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="rodadas"
+                      stroke="#fd7e14"
+                      strokeWidth={3}
+                      name="Rodadas na Roleta"
+                      dot={{ fill: '#fd7e14', r: 5 }}
+                      activeDot={{ r: 7 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="resgates"
+                      stroke="#6f42c1"
+                      strokeWidth={3}
+                      name="Resgate de Brindes"
+                      dot={{ fill: '#6f42c1', r: 5 }}
+                      activeDot={{ r: 7 }}
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="text-center py-5">

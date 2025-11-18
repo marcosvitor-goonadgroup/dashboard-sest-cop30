@@ -233,6 +233,9 @@ export const DataProvider = ({ children }) => {
         totalCheckins: 0,
         totalResgates: 0,
         totalAtivacoes: 0,
+        totalAtivacoesComCheckins: 0,
+        totalRodasRoleta: 0,
+        totalResgatesBrindes: 0,
         mediaGeralAvaliacoes: 0
       };
     }
@@ -242,9 +245,20 @@ export const DataProvider = ({ children }) => {
     const ativacoes = filteredData.ativacoes?.data || [];
     const checkinsUsuariosLnk = filteredData.checkins_users_permissions_user_lnk?.data || [];
     const avaliacoes = filteredData.avaliacao_de_ativacaos?.data || [];
+    const checkinsAtivacaoLnk = filteredData.checkins_ativacao_lnk?.data || [];
+    const roletas = filteredData.roletas?.data || [];
+    const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
 
     // Usu�rios �nicos com check-in
     const usuariosComCheckin = new Set(checkinsUsuariosLnk.map(link => link.user_id));
+
+    // Calcular n�mero de ativa��es com check-ins
+    const ativacoesComCheckins = new Set(checkinsAtivacaoLnk.map(link => link.ativacao_id));
+    const ativacoesPublicadas = ativacoes.filter(a => a.published_at !== null);
+    const idsPublicados = new Set(ativacoesPublicadas.map(a => a.id));
+
+    // Contar apenas ativa��es publicadas que t�m check-ins
+    const totalAtivacoesComCheckins = Array.from(ativacoesComCheckins).filter(id => idsPublicados.has(id)).length;
 
     // Calcular m�dia geral das avalia��es
     const avaliacoesValidas = avaliacoes.filter(a =>
@@ -263,6 +277,9 @@ export const DataProvider = ({ children }) => {
       totalCheckins: checkins.length,
       totalResgates: resgates.length,
       totalAtivacoes: ativacoes.filter(a => a.published_at !== null).length,
+      totalAtivacoesComCheckins: totalAtivacoesComCheckins,
+      totalRodasRoleta: roletas.length,
+      totalResgatesBrindes: roletasBrindeLnk.length,
       mediaGeralAvaliacoes: mediaGeralAvaliacoes
     };
   }, [getFilteredData]);
@@ -561,6 +578,77 @@ export const DataProvider = ({ children }) => {
     };
   }, [data, filters, getFilteredData]);
 
+  // Fun��o para obter dados de roletas e resgates por dia
+  const getRoletasResgatesPorDia = useCallback(() => {
+    const filteredData = getFilteredData();
+    if (!filteredData) return [];
+
+    const roletas = filteredData.roletas?.data || [];
+    const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
+
+    // Criar um mapa de roletas por ID para acesso r�pido
+    const roletasMap = new Map();
+    roletas.forEach(roleta => {
+      roletasMap.set(roleta.id, roleta);
+    });
+
+    // Agrupar roletas por dia
+    const roletasPorDia = {};
+    const resgatesPorDia = {};
+
+    // Processar roletas
+    roletas.forEach(roleta => {
+      if (!roleta.created_at) return;
+
+      const data = new Date(roleta.created_at);
+      const dataFormatada = data.toISOString().split('T')[0];
+
+      if (!roletasPorDia[dataFormatada]) {
+        roletasPorDia[dataFormatada] = 0;
+      }
+      roletasPorDia[dataFormatada]++;
+    });
+
+    // Processar resgates de brindes - buscar data da roleta relacionada
+    roletasBrindeLnk.forEach(resgate => {
+      const roleta = roletasMap.get(resgate.roleta_id);
+
+      // Se n�o encontrar a roleta ou n�o tiver created_at, pular
+      if (!roleta || !roleta.created_at) return;
+
+      const data = new Date(roleta.created_at);
+      const dataFormatada = data.toISOString().split('T')[0];
+
+      if (!resgatesPorDia[dataFormatada]) {
+        resgatesPorDia[dataFormatada] = 0;
+      }
+      resgatesPorDia[dataFormatada]++;
+    });
+
+    // Combinar todas as datas �nicas
+    const todasDatas = new Set([...Object.keys(roletasPorDia), ...Object.keys(resgatesPorDia)]);
+
+    // Criar array com dados formatados
+    const chartData = Array.from(todasDatas).map(data => {
+      const dataObj = new Date(data + 'T00:00:00');
+      const dataFormatada = dataObj.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+
+      return {
+        data: data,
+        dataFormatada: dataFormatada,
+        rodadas: roletasPorDia[data] || 0,
+        resgates: resgatesPorDia[data] || 0
+      };
+    });
+
+    // Ordenar por data (crescente)
+    return chartData.sort((a, b) => new Date(a.data) - new Date(b.data));
+  }, [getFilteredData]);
+
   // Fun��o para obter dados do funil de atividades
   const getFunnelData = useCallback(() => {
     const filteredData = getFilteredData();
@@ -568,13 +656,17 @@ export const DataProvider = ({ children }) => {
 
     const usuarios = filteredData.up_users?.data || [];
     const checkins = filteredData.checkins?.data || [];
+    const roletas = filteredData.roletas?.data || [];
+    const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
 
     // Contar totais de cada tabela
     const totalUsuarios = usuarios.length;
     const totalCheckins = checkins.length;
+    const totalRodasRoleta = roletas.length;
+    const totalResgatesBrindes = roletasBrindeLnk.length;
 
     // Encontrar o maior valor para calcular as larguras proporcionais
-    const maiorValor = Math.max(totalUsuarios, totalCheckins);
+    const maiorValor = Math.max(totalUsuarios, totalCheckins, totalRodasRoleta, totalResgatesBrindes);
 
     return [
       {
@@ -588,6 +680,18 @@ export const DataProvider = ({ children }) => {
         quantidade: totalCheckins,
         percentual: maiorValor > 0 ? Math.round((totalCheckins / maiorValor) * 100) : 0,
         cor: '#198754'
+      },
+      {
+        etapa: 'Rodadas na Roleta',
+        quantidade: totalRodasRoleta,
+        percentual: maiorValor > 0 ? Math.round((totalRodasRoleta / maiorValor) * 100) : 0,
+        cor: '#fd7e14'
+      },
+      {
+        etapa: 'Resgate de Brindes',
+        quantidade: totalResgatesBrindes,
+        percentual: maiorValor > 0 ? Math.round((totalResgatesBrindes / maiorValor) * 100) : 0,
+        cor: '#6f42c1'
       }
     ];
   }, [getFilteredData]);
@@ -636,6 +740,7 @@ export const DataProvider = ({ children }) => {
     getResgatesPorBrinde,
     getFilterStats,
     getFunnelData,
+    getRoletasResgatesPorDia,
 
     // Funções de navegação entre relações (baseadas em relacoes_app.csv)
     getCheckInsByUser,
