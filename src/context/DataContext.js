@@ -248,6 +248,19 @@ export const DataProvider = ({ children }) => {
     const checkinsAtivacaoLnk = filteredData.checkins_ativacao_lnk?.data || [];
     const roletas = filteredData.roletas?.data || [];
     const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
+    const brindes = filteredData.brindes?.data || [];
+
+    // Identificar IDs dos brindes "TENTE NOVAMENTE" para excluir
+    const brindesTenteNovamenteIds = new Set(
+      brindes
+        .filter(b => b.document_id === 'gupg8o96vm7xryr9tjactj3n')
+        .map(b => b.id)
+    );
+
+    // Filtrar resgates de brindes excluindo "TENTE NOVAMENTE"
+    const roletasBrindeLnkValidos = roletasBrindeLnk.filter(
+      link => !brindesTenteNovamenteIds.has(link.brinde_id)
+    );
 
     // Usu�rios �nicos com check-in
     const usuariosComCheckin = new Set(checkinsUsuariosLnk.map(link => link.user_id));
@@ -279,7 +292,7 @@ export const DataProvider = ({ children }) => {
       totalAtivacoes: ativacoes.filter(a => a.published_at !== null).length,
       totalAtivacoesComCheckins: totalAtivacoesComCheckins,
       totalRodasRoleta: roletas.length,
-      totalResgatesBrindes: roletasBrindeLnk.length,
+      totalResgatesBrindes: roletasBrindeLnkValidos.length,
       mediaGeralAvaliacoes: mediaGeralAvaliacoes
     };
   }, [getFilteredData]);
@@ -585,6 +598,19 @@ export const DataProvider = ({ children }) => {
 
     const roletas = filteredData.roletas?.data || [];
     const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
+    const brindes = filteredData.brindes?.data || [];
+
+    // Identificar IDs dos brindes "TENTE NOVAMENTE" para excluir
+    const brindesTenteNovamenteIds = new Set(
+      brindes
+        .filter(b => b.document_id === 'gupg8o96vm7xryr9tjactj3n')
+        .map(b => b.id)
+    );
+
+    // Filtrar resgates de brindes excluindo "TENTE NOVAMENTE"
+    const roletasBrindeLnkValidos = roletasBrindeLnk.filter(
+      link => !brindesTenteNovamenteIds.has(link.brinde_id)
+    );
 
     // Criar um mapa de roletas por ID para acesso r�pido
     const roletasMap = new Map();
@@ -609,8 +635,8 @@ export const DataProvider = ({ children }) => {
       roletasPorDia[dataFormatada]++;
     });
 
-    // Processar resgates de brindes - buscar data da roleta relacionada
-    roletasBrindeLnk.forEach(resgate => {
+    // Processar resgates de brindes - buscar data da roleta relacionada (excluindo "TENTE NOVAMENTE")
+    roletasBrindeLnkValidos.forEach(resgate => {
       const roleta = roletasMap.get(resgate.roleta_id);
 
       // Se n�o encontrar a roleta ou n�o tiver created_at, pular
@@ -647,6 +673,59 @@ export const DataProvider = ({ children }) => {
 
     // Ordenar por data (crescente)
     return chartData.sort((a, b) => new Date(a.data) - new Date(b.data));
+  }, [getFilteredData]);
+
+  // Fun��o para obter quantidade de resgates por brinde da roleta
+  const getResgatesPorBrindeRoleta = useCallback(() => {
+    const filteredData = getFilteredData();
+    if (!filteredData) return [];
+
+    const brindes = filteredData.brindes?.data || [];
+    const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
+
+    // Identificar document_id do brinde "TENTE NOVAMENTE" para excluir
+    const documentIdTenteNovamente = 'gupg8o96vm7xryr9tjactj3n';
+
+    // Criar mapa de brinde_id para document_id
+    const brindeIdToDocumentId = {};
+    brindes.forEach(brinde => {
+      brindeIdToDocumentId[brinde.id] = brinde.document_id;
+    });
+
+    // Agrupar resgates por document_id (para unificar varia��es do mesmo brinde)
+    // Excluindo "TENTE NOVAMENTE"
+    const resgatesPorDocumentId = {};
+    roletasBrindeLnk.forEach(link => {
+      const documentId = brindeIdToDocumentId[link.brinde_id];
+      // Excluir "TENTE NOVAMENTE" da contagem
+      if (documentId && documentId !== documentIdTenteNovamente) {
+        if (!resgatesPorDocumentId[documentId]) {
+          resgatesPorDocumentId[documentId] = 0;
+        }
+        resgatesPorDocumentId[documentId]++;
+      }
+    });
+
+    // Criar array com informa��es dos brindes
+    // Para cada document_id, pegar o brinde publicado (ou qualquer um se n�o houver publicado)
+    const chartData = Object.entries(resgatesPorDocumentId).map(([documentId, count]) => {
+      // Buscar primeiro um brinde publicado, depois qualquer um
+      let brinde = brindes.find(b => b.document_id === documentId && b.published_at !== null);
+      if (!brinde) {
+        brinde = brindes.find(b => b.document_id === documentId);
+      }
+
+      return {
+        documentId: documentId,
+        titulo: brinde ? brinde.titulo : `Brinde ${documentId}`,
+        resgates: count,
+        pontos: brinde?.pontos || 0,
+        estoque: brinde?.estoque || 0
+      };
+    });
+
+    // Ordenar por n�mero de resgates (decrescente)
+    return chartData.sort((a, b) => b.resgates - a.resgates);
   }, [getFilteredData]);
 
   // Fun��o para obter dados do funil de atividades
@@ -741,6 +820,7 @@ export const DataProvider = ({ children }) => {
     getFilterStats,
     getFunnelData,
     getRoletasResgatesPorDia,
+    getResgatesPorBrindeRoleta,
 
     // Funções de navegação entre relações (baseadas em relacoes_app.csv)
     getCheckInsByUser,

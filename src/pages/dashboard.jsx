@@ -5,7 +5,7 @@ import { useData } from '../context/DataContext';
 import Filtros from '../components/Filtros';
 
 const Dashboard = () => {
-  const { loading, error, getMetrics, getCheckInsPorAtivacao, getCheckInsPorDia, getPicosPorHorario, getFunnelData, getRoletasResgatesPorDia, filters, updateFilters } = useData();
+  const { loading, error, getMetrics, getCheckInsPorAtivacao, getCheckInsPorDia, getPicosPorHorario, getFunnelData, getRoletasResgatesPorDia, getResgatesPorBrindeRoleta, filters, updateFilters } = useData();
   const [ativacaoSelecionada, setAtivacaoSelecionada] = useState(null);
   const [dataSelecionadaPicos, setDataSelecionadaPicos] = useState(null);
 
@@ -26,6 +26,9 @@ const Dashboard = () => {
 
   // Obter dados de roletas e resgates por dia
   const chartDataRoletasResgates = getRoletasResgatesPorDia();
+
+  // Obter dados de resgates por brinde da roleta
+  const chartDataResgatesPorBrinde = getResgatesPorBrindeRoleta();
 
   // Handler para clicar na barra
   const handleBarClick = (data) => {
@@ -95,6 +98,28 @@ const Dashboard = () => {
           </p>
           <p className="mb-0" style={{ color: '#6f42c1' }}>
             Resgate de Brindes: <strong>{data.resgates}</strong>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Tooltip customizado para gráfico de resgates por brinde
+  const CustomTooltipResgatesPorBrinde = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="card shadow-sm" style={{ padding: '10px', border: '1px solid #ccc' }}>
+          <p className="mb-1" style={{ fontWeight: 'bold' }}>{data.titulo}</p>
+          <p className="mb-1" style={{ color: '#6f42c1' }}>
+            Resgates: <strong>{data.resgates}</strong>
+          </p>
+          <p className="mb-1" style={{ color: '#0d6efd' }}>
+            Pontos: <strong>{data.pontos}</strong>
+          </p>
+          <p className="mb-0" style={{ color: '#198754' }}>
+            Estoque: <strong>{data.estoque}</strong>
           </p>
         </div>
       );
@@ -569,6 +594,53 @@ const Dashboard = () => {
                       activeDot={{ r: 7 }}
                     />
                   </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-5">
+                  <p className="text-muted">Nenhum dado disponível para exibir</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Linha com gráfico de Resgates por Brinde */}
+      <div className="row mb-4">
+        <div className="col-md-12">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <h5 className="card-title mb-2">Quantidade de Resgates por Brinde</h5>
+              <p className="text-muted small mb-4">
+                Ranking dos brindes mais resgatados na roleta
+              </p>
+              {chartDataResgatesPorBrinde.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={chartDataResgatesPorBrinde}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 100 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="titulo"
+                      angle={-45}
+                      textAnchor="end"
+                      height={120}
+                      style={{ fontSize: '11px' }}
+                    />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltipResgatesPorBrinde />} />
+                    <Legend />
+                    <Bar
+                      dataKey="resgates"
+                      name="Quantidade de Resgates"
+                      radius={[8, 8, 0, 0]}
+                    >
+                      {chartDataResgatesPorBrinde.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill="#6f42c1" />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="text-center py-5">
