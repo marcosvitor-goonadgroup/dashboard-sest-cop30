@@ -737,12 +737,25 @@ export const DataProvider = ({ children }) => {
     const checkins = filteredData.checkins?.data || [];
     const roletas = filteredData.roletas?.data || [];
     const roletasBrindeLnk = filteredData.roletas_brinde_lnk?.data || [];
+    const brindes = filteredData.brindes?.data || [];
+
+    // Identificar IDs dos brindes "TENTE NOVAMENTE" para excluir
+    const brindesTenteNovamenteIds = new Set(
+      brindes
+        .filter(b => b.document_id === 'gupg8o96vm7xryr9tjactj3n')
+        .map(b => b.id)
+    );
+
+    // Filtrar resgates de brindes excluindo "TENTE NOVAMENTE"
+    const roletasBrindeLnkValidos = roletasBrindeLnk.filter(
+      link => !brindesTenteNovamenteIds.has(link.brinde_id)
+    );
 
     // Contar totais de cada tabela
     const totalUsuarios = usuarios.length;
     const totalCheckins = checkins.length;
     const totalRodasRoleta = roletas.length;
-    const totalResgatesBrindes = roletasBrindeLnk.length;
+    const totalResgatesBrindes = roletasBrindeLnkValidos.length;
 
     // Encontrar o maior valor para calcular as larguras proporcionais
     const maiorValor = Math.max(totalUsuarios, totalCheckins, totalRodasRoleta, totalResgatesBrindes);
